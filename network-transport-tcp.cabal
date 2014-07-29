@@ -76,6 +76,7 @@ Test-Suite TestQC
                     mtl,
                     transformers,
                     lockfree-queue
+
   Else
     Buildable: False
   ghc-options:    -threaded -Wall -fno-warn-orphans
@@ -86,3 +87,19 @@ Test-Suite TestQC
                   OverloadedStrings
                   DeriveDataTypeable
                   MultiParamTypeClasses
+
+benchmark bench-throughput-local
+  type:              exitcode-stdio-1.0
+  main-is:           Throughput.hs
+  build-depends:     base >= 4.4 && < 5,
+                     network-transport-tcp,
+                     bytestring,
+                     binary,
+                     distributed-process,
+                     criterion
+  hs-source-dirs:    benchmarks
+  ghc-options:       -O2 -Wall -threaded
+  default-language:  Haskell2010
+  default-extensions: BangPatterns
+
+

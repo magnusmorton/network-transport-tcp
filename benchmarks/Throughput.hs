@@ -23,7 +23,7 @@ import           Text.Printf
 
 import           System.Environment
 
-import           Network.Transport.ZMQ (createTransport, defaultZMQParameters)
+import           Network.Transport.TCP (createTransport, defaultTCPParameters)
 
 data SizedList a = SizedList { size :: Int , _elems :: [a] }
   deriving (Typeable)
@@ -83,7 +83,7 @@ main :: IO ()
 main = getArgs >>= \case 
   [] -> defaultBenchmark
   [role, host] -> do 
-      transport <- createTransport defaultZMQParameters (pack host)
+      Right transport <- createTransport host "8080" defaultTCPParameters 
       node <- newLocalNode transport initRemoteTable
       case role of
         "SERVER" -> runProcess node initialServer
@@ -97,7 +97,7 @@ defaultBenchmark :: IO ()
 defaultBenchmark = do
   -- server
   void . forkOS $ do
-    transport <- createTransport defaultZMQParameters "127.0.0.1"
+    Right transport <- createTransport "127.0.0.1" "8080" defaultTCPParameters
     node <- newLocalNode transport initRemoteTable
     runProcess node $ initialServer
   
@@ -105,8 +105,9 @@ defaultBenchmark = do
   e <- newEmptyMVar
   void . forkOS $ do
     putStrLn "packet size  time\n---          ---\n"
-    forM_ [1,10,100,200,600,800,1000,2000,4000] $ \i -> do
-        transport <- createTransport defaultZMQParameters "127.0.0.1"
+    forM_ [1,10,100,200,600,800,1000,2000,4000,8000] $ \i -> do
+        let port = 8080  + i
+        Right transport <- createTransport "127.0.0.1" (show port) defaultTCPParameters
         node <- newLocalNode transport initRemoteTable
         d <- time_ $ runProcess node $ initialClient (1000,i)
         printf "%-8i %10.4f\n" i d
